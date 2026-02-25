@@ -1,10 +1,24 @@
 # Medical Service Management API
 
-API REST robusta desarrollada con **NestJS**, **Prisma** y **PostgreSQL** para la gestión eficiente de servicios médicos. El sistema implementa seguridad avanzada, control de acceso basado en roles (RBAC) y una infraestructura totalmente basada en Docker.
+API REST robusta desarrollada con **NestJS**, **Prisma** y **PostgreSQL** para la gestiónservicios médicos. El sistema implementa seguridad avanzada, control de acceso basado en roles (RBAC) y una infraestructura íntegramente containerizada.
 
-## Guía de Inicio Rápido (Docker)
+## Requisitos Previos
 
-Siga estos pasos para levantar el entorno sin conflictos.
+Para ejecutar este proyecto, es indispensable contar con el siguiente software instalado en su equipo:
+
+- **Docker**: Versión 20.10 o superior.
+- **Docker Compose**: Versión 2.0 o superior.
+- **Git**: Versión 2.50.0 o superior
+
+---
+
+- **Opcional: GithubDesktop**
+
+---
+
+## Guía de Inicio Rápido
+
+Siga estos pasos para levantar el entorno sin conflictos de dependencias.
 
 ### 1. Clonar y Configurar
 
@@ -17,7 +31,7 @@ cp .env.example .env
 
 ```
 
-> **Nota:** El archivo `.env.example` se encuentra preconfigurado para establecer comunicación inmediata con la red interna de contenedores.
+> **Nota:** El archivo `.env.example` se encuentra preconfigurado para establecer comunicación inmediata con la red interna de contenedores y definir variables críticas como el `JWT_SECRET`.
 
 ### 2. Despliegue con un solo comando
 
@@ -28,110 +42,134 @@ docker-compose up --build
 
 #### Justificación técnica
 
-A diferencia de despliegues convencionales que requieren configuraciones manuales, esta API utiliza un flujo de automatización total para garantizar la consistencia del entorno:
+A diferencia de despliegues convencionales, esta API utiliza un flujo de automatización total para garantizar la consistencia del entorno:
 
-- **Construcción Hermética (Dockerfile)**: Se crea un entorno Linux aislado donde se instalan librerías y se ejecuta `npx prisma generate`. Esto asegura que el cliente de base de datos esté disponible antes del arranque sin requerir Node.js local.
-
-- **Orquestación con Docker Compose**: Permite el levantamiento simultáneo de la aplicación y la base de datos PostgreSQL.
-
-- **Script de Inicialización**: Mediante la instrucción `command` en el archivo `docker-compose.yml`, se ejecuta una secuencia lógica automatizada:
-- **sleep 10**: Proporciona el tiempo necesario para que PostgreSQL esté operativo antes de recibir conexiones.
-- **npx prisma db push**: Sincroniza el esquema de datos con la base de datos de forma automática.
-
-- **npm run db:seed**: Agrega a la base de datos los registros base y el usuario administrador inicial para pruebas inmediatas.
+- **Construcción Hermética (Dockerfile)**: Se crea un entorno basado en `node:20-alpine` donde se instalan librerías críticas para el motor de Prisma (`openssl`, `libc6-compat`). Se ejecuta `npx prisma generate` durante la construcción para asegurar que el cliente de base de datos esté disponible antes del arranque.
+- **Orquestación con Docker Compose**: Coordina la aplicación y la base de datos PostgreSQL 16.
+- **Script de Inicialización**: Mediante la instrucción `command`, se ejecuta una secuencia lógica automatizada:
+- **sleep 10**: Tiempo de espera preventivo para la disponibilidad total de PostgreSQL.
+- **npx prisma db push**: Sincroniza el esquema de datos sin necesidad de archivos de migración manuales.
+- **npm run db:seed**: Puebla la base de datos con categorías y el usuario administrador inicial.
 
 ### 3. Verificar Instalación
 
-Una vez finalizado el proceso de carga y aparezca el mensaje de éxito en la terminal, puede acceder a:
+Una vez finalizado el proceso de carga, puede acceder a:
 
-- **Documentación Swagger**: [http://localhost:3000/docs].
-
-- **Acceso a Base de Datos (DBeaver / PgAdmin4)**: Host: `localhost` | Puerto: `5433` | Usuario/Password: `postgres` / `postgres`.
-
----
-
-## Solución de Problemas Comunes
-
-| Error                                         | Causa                                                           | Solución                                                                        |
-| --------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `Port 3000 is already allocated`              | El puerto 3000 está ocupado por otro proceso local.             | Detenga el proceso que ocupa el puerto o cámbielo en `docker-compose.yml`.      |
-| `Port 5432 failed: port is already allocated` | Existe una instancia de PostgreSQL ejecutándose localmente.     | No requiere acción; el sistema mapea el puerto **5433** para el acceso externo. |
-| `Can't reach database server`                 | La base de datos aún se encuentra en proceso de inicialización. | El sistema reintentará la conexión automáticamente tras la pausa programada.    |
+- **Documentación Swagger**: [http://localhost:3000/docs]
+- **Acceso a Base de Datos (DBeaver / PgAdmin4)**:
+- **Host**: `localhost`
+- **Puerto**: `5433` (Mapeado para evitar conflictos con instancias locales en el puerto 5432)
+- **Usuario/Password**: `postgres` / `postgres`
 
 ---
 
-## Mantenimiento y Limpieza (Reset)
+## Decisiones Técnicas y Dependencias
 
-Si desea reiniciar la prueba técnica desde cero, eliminando únicamente los datos y contenedores de este proyecto sin afectar otros trabajos de Docker, ejecute:
+### Versiones de Software
 
-```bash
-# Detiene los contenedores y elimina los datos (volúmenes) asociados a este proyecto
-docker-compose down -v
+**Prisma ORM (v5.15.0)** Durante la fase de desarrollo, la versión 7 presentó comportamientos inesperados al mapear las variables de entorno en contenedores aislados. Ante estos retos de compatibilidad y con el objetivo de entregar una infraestructura robusta y funcional "out-of-the-box", decidí implementar la versión 5.15. Esta elección técnica asegura que la comunicación entre la API y PostgreSQL en Docker sea inmediata y libre de errores.
 
-```
+### Dependencias Principales
 
-Para volver a levantar el entorno limpio:
+- **@nestjs/swagger**: Para la generación de documentación interactiva.
 
-```bash
-docker-compose up --build
+- **class-validator & class-transformer**: Para la validación estricta de DTOs en los puntos de entrada.
 
-```
+- **passport-jwt & bcryptjs**: Para la gestión segura de identidad y encriptación de credenciales.
 
 ---
 
 ## Arquitectura y Diseño
 
-Se ha implementado una **Arquitectura Limpia (Clean Architecture)** para garantizar la separación de responsabilidades:
+El proyecto implementa **Clean Architecture** para garantizar la separación de responsabilidades:
 
-- **Capa de Controladores**: Gestiona las peticiones HTTP y asegura la integridad de los datos mediante DTOs y validaciones técnicas.
+- **Capa de Controladores**: Maneja las peticiones HTTP, define los esquemas de Swagger y aplica los Pipes de validación global.
 
-- **Capa de Servicios**: Centraliza la lógica de negocio, incluyendo filtros de búsqueda y la implementación del **borrado lógico**.
+- **Capa de Seguridad (Guards)**:
+- **JwtAuthGuard**: Valida la identidad del usuario mediante el token.
 
-- **Capa de Persistencia**: Gestión de datos tipada mediante Prisma ORM con PostgreSQL.
+- **RolesGuard**: Verifica los privilegios (`ADMIN` o `CLIENT`) contra los metadatos de la ruta.
 
-### Estrategia de Seguridad (RBAC)
+- **Capa de Servicios**: Contiene la lógica de negocio y la implementación del borrado lógico (`deletedAt`).
 
-Se ha diseñado un esquema de seguridad basado en privilegios mínimos:
-
-- **JWT (Stateless)**: Autenticación basada en tokens para una validación segura.
-
-- **Roles Definidos**: Gestión de permisos diferenciada para perfiles `ADMIN` y `CLIENT`.
-
-- **Guards Personalizados**: Mecanismo que restringe las operaciones de escritura (POST, PATCH, DELETE) exclusivamente al rol `ADMIN`.
+- **Capa de Persistencia**: Gestión de datos mediante Prisma ORM.
 
 ---
 
-## Credenciales de Prueba (Configuradas vía Seed) """Para el endpoint de login en swagger, aunque ya lo tengo por defecto usando example"""
+## Modelo de Datos (ERD)
+
+Diagrama basado en la definición de `schema.prisma`. Representa la relación entre categorías y servicios, y la gestión de usuarios independientes para autenticación.
+
+```mermaid
+erDiagram
+    CATEGORIA ||--o{ SERVICIO_MEDICO : contiene
+
+    USUARIO {
+        int id PK
+        string email UK
+        string nombre
+        string apellido
+        string password
+        Rol rol "ADMIN | CLIENT"
+        datetime createdAt
+    }
+
+    CATEGORIA {
+        int id PK
+        string nombre UK
+        datetime createdAt
+    }
+
+    SERVICIO_MEDICO {
+        int id PK
+        string nombre
+        string descripcion
+        float costo
+        int duracionMinutos
+        datetime fechaDisponibilidad
+        boolean isActive
+        int categoriaId FK
+        datetime createdAt
+        datetime deletedAt
+
+
+        
+    }
+
+```
+
+---
+
+## Credenciales de Prueba (Configuradas vía Seed)
+
+Utilice estas credenciales para autenticarse en el recurso `/auth/login`:
 
 - **Usuario Administrador**: `admin@medico.com`
 - **Contraseña**: `admin123`
 
 ---
 
-## Modelo de Datos (ERD)
+## Mantenimiento y Limpieza (Reset)
 
-```mermaid
-erDiagram
-    USER ||--o{ MEDICAL_SERVICE : manages
-    CATEGORY ||--o{ MEDICAL_SERVICE : classifies
-    USER {
-        string id PK
-        string email
-        string password
-        string role "ADMIN | CLIENT"
-    }
-    MEDICAL_SERVICE {
-        string id PK
-        string name
-        string description
-        float cost
-        int duration
-        datetime fecha_disponibilidad
-        string status "active | inactive"
-    }
-    CATEGORY {
-        string id PK
-        string name
-    }
+Para reiniciar la prueba técnica desde cero eliminando únicamente los datos y contenedores de este proyecto específico:
+
+```bash
+# Detiene contenedores y elimina volúmenes de datos asociados
+docker-compose down -v
+
+# Reinicia el entorno limpio
+docker-compose up --build
 
 ```
+
+---
+
+## Solución de Problemas Comunes
+
+| Error                                 | Causa                                               | Solución                                                                          |
+| ------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `Port 3000 is already allocated`      | El puerto 3000 está ocupado por otro proceso local. | Detenga el proceso local o ajuste el puerto en el archivo `docker-compose.yml`.   |
+| `Port 5432 failed: already allocated` | Instancia de PostgreSQL externa activa.             | No requiere acción; el sistema utiliza el puerto **5433** para el acceso externo. |
+| `Can't reach database server`         | PostgreSQL aún está en fase de inicialización.      | El sistema reintenta la conexión automáticamente tras la pausa programada.        |
+
+---
