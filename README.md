@@ -98,11 +98,11 @@ El proyecto implementa **Clean Architecture** para garantizar la separación de 
 
 ## Modelo de Datos (ERD)
 
-Diagrama basado en la definición de `schema.prisma`. Representa la relación entre categorías y servicios, y la gestión de usuarios independientes para autenticación.
+Diagrama basado en la definición de schema.prisma. Se define una relación de Uno a Muchos (1:N): una categoría agrupa múltiples servicios médicos, mientras que cada servicio está vinculado de forma obligatoria a una sola categoría.
 
 ```mermaid
 erDiagram
-    CATEGORIA ||--o{ SERVICIO_MEDICO : contiene
+    CATEGORIA ||--o{ SERVICIO_MEDICO : "una categoria tiene muchos servicios (1:N)"
 
     USUARIO {
         int id PK
@@ -131,11 +131,7 @@ erDiagram
         int categoriaId FK
         datetime createdAt
         datetime deletedAt
-
-
-        
     }
-
 ```
 
 ---
