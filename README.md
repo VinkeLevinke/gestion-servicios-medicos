@@ -1,80 +1,43 @@
+# Medical Service Management API
 
-# Medical Service Management API // Gestion-servicios-medicos
+## Descripción
 
-Esta es una solución robusta desarrollada para la gestión de servicios médicos. El proyecto permite a los administradores gestionar el catálogo completo mientras ofrece a los pacientes (clientes) una plataforma de consulta rápida y filtrada.
+Esta es una solución robusta desarrollada para la gestión de servicios médicos. El sistema permite a los perfiles administrativos gestionar el catálogo completo de servicios, mientras ofrece a los pacientes (clientes) una plataforma de consulta eficiente con capacidades de filtrado avanzado.
 
-# Tecnologías usadas
+## Stack Tecnológico
 
-Para garantizar la escalabilidad y el tipado fuerte, he utilizado las siguientes tecnologías:
+| Componente        | Tecnología                                                          |
+| ----------------- | ------------------------------------------------------------------- |
+| **Framework**     | NestJS v10.x (Node.js)                                              |
+| **ORM**           | Prisma v5.15.0 (Versión seleccionada por estabilidad frente a v7.x) |
+| **Base de Datos** | PostgreSQL 16 (Imagen Alpine)                                       |
+| **Documentación** | Swagger / OpenAPI                                                   |
+| **Seguridad**     | Passport JWT + Bcryptjs                                             |
+| **Validación**    | Class-validator & Class-transformer                                 |
 
-* 
-**Framework**: [NestJS] v10.x (Node.js).
+## Arquitectura del Sistema
 
+Se ha implementado una **Arquitectura en Capas** basada en principios de Clean Architecture para asegurar la mantenibilidad y escalabilidad del código:
 
-* 
-**ORM**: [Prisma] v5.15.0 para el modelado de datos.
-(Decidí usar esta versión debido a que la versión mas actual de [PRISMA] 7.x.x tenia muchos conflictos, por lo que, decidi cambiar a una mas estable.)
+1. **Capa de Presentación (Controladores y DTOs):** Encargada de gestionar las solicitudes HTTP, definir los puntos de entrada de la API y validar la integridad de los datos entrantes mediante objetos de transferencia de datos estrictos.
+2. **Capa de Aplicación (Servicios):** Contiene la lógica de negocio central, incluyendo el manejo de filtros complejos, validaciones de duplicados y coordinación de operaciones.
+3. **Capa de Infraestructura (Prisma):** Gestiona la persistencia de datos y la comunicación directa con la base de datos PostgreSQL.
 
-* 
-**Base de Datos**: [PostgreSQL:16-alpine].
+## Estrategia de Seguridad y Roles (RBAC)
 
+La seguridad del sistema se fundamenta en el Control de Acceso Basado en Roles (RBAC) y la autenticación mediante tokens JWT:
 
-* 
-**Documentación**: [Swagger].
+- **Normalización de Datos:** Proceso automático de normalización para correos electrónicos (minúsculas y trim) y nombres (capitalización) durante el registro para garantizar la consistencia en la base de datos.
+- **Protección de Rutas:** Implementación de un `RolesGuard` personalizado que intercepta las peticiones y verifica los privilegios del usuario.
+- **Matriz de Permisos:**
+- **ADMIN:** Acceso total para operaciones de escritura, actualización y eliminación (POST, PATCH, DELETE).
+- **CLIENT:** Acceso restringido únicamente a consultas de lectura (GET).
 
-
-* 
-**Seguridad**: [Passport JWT](JasonWebTokens) + [Bcryptjs].
-
-
-* 
-**Validación**: [Class-validator] & [Class-transformer].
-
-## Arquitectura del Sistema:
-
-Se ha implementado una **Arquitectura en Capas (Clean Architecture)** para asegurar una separación clara de responsabilidades:
-
-1. 
-**Capa de Presentación (Controllers & DTOs)**: Maneja las solicitudes HTTP y valida la entrada de datos mediante DTOs estrictos.
-
-
-2. 
-**Capa de Aplicación (Services)**: Contiene la lógica de negocio, como el filtrado avanzado de fechas y la gestión de duplicados.
-
-
-3. 
-**Capa de Infraestructura (Prisma)**: Gestiona la persistencia y comunicación con PostgreSQL.
-
-
-##  Estrategia de Seguridad (RBAC)
-
-La seguridad se basa en **Roles (RBAC)** y autenticación **JWT**:
-
-* **Normalización**: He implementado un sistema que normaliza correos (lowercase/trim) y nombres (Capitalización) automáticamente en el registro para evitar inconsistencias en la BD.
-* 
-**Protección de Rutas**: Un `RolesGuard` personalizado verifica si el usuario tiene el permiso necesario.
-
-
-* **Permisos**:
-* 
-**ADMIN**: Posee control total sobre los servicios (POST, PATCH, DELETE).
-
-
-* 
-**CLIENT**: Solo tiene permisos de lectura (GET).
-
-
-
-
-* 
-**Un Borrado Lógico**: Siguiendo las buenas prácticas, los registros nunca se eliminan físicamente; se utiliza la columna `is_active` y `deleted_at` para mantener la integridad referencial.
-
-
----
+- **Borrado Lógico:** Implementación de integridad referencial mediante el uso de las columnas `is_active` y `deleted_at`, asegurando que los registros no sean eliminados físicamente de la persistencia.
 
 ## Diagrama de Entidad-Relación
 
-El modelo cuenta con una relación de uno a muchos entre **Categorías** y **Servicios Médicos**, permitiendo una organización lógica del catálogo.
+El modelo de datos define una relación de uno a muchos entre Categorías y Servicios Médicos, permitiendo una clasificación lógica del catálogo.
 
 ```mermaid
 erDiagram
@@ -101,51 +64,41 @@ erDiagram
 
 ```
 
+## Ejecución con Docker
 
+### Pasos para el despliegue:
 
-# Ejecución con Docker
+1. **Clonación del repositorio:**
 
-El proyecto está completamente containerizado para facilitar su despliegue.
-
-1. **Clonar el repositorio**:
-
-git clone <url-del-repo>
+```bash
+git clone https://github.com/VinkeLevinke/gestion-servicios-medicos.git
 cd gestion-servicios-medicos
 
+```
 
+2. **Configuración de entorno:**
+   Crear un archivo `.env` basado en `.env.example` y ajustar las credenciales de conexión.
+3. **Levantamiento de servicios:**
 
-
-2. **Configurar variables de entorno**:
-Copia el archivo `.env.example` a `.env` y ajusta las credenciales si es necesario.
-
-
-3. **Levantar los servicios**:
-
+```bash
 docker-compose up --build
 
+```
 
+Este comando inicializa tanto la API como la base de datos de forma automática. 4. **Ejecución de Seed (Datos iniciales):**
 
+En una nueva terminal, ejecute el siguiente comando para instanciar el usuario administrador inicial (`admin@medico.com` / `admin123`) y las categorías base:
 
-Este comando levantará la API y la base de datos PostgreSQL automáticamente.
-
-
-4. **Poblar la base de datos (Seed)**:
-En una nueva terminal, ejecuta el siguiente comando para crear el usuario ADMIN inicial (`admin@medico.com` / `admin123`) y las categorías base:
-
-
+```bash
 npx prisma db seed
 
+```
 
+5. **Documentación interactiva:**
+   Acceda a `http://localhost:3000/docs` para consultar y probar los endpoints mediante la interfaz de Swagger.
 
-5. **Acceder a la documentación**:
-Visita `http://localhost:3000/docs` para interactuar con la API mediante Swagger.
+## Funcionalidades Destacadas
 
+- **Búsqueda Avanzada:** El endpoint `GET /servicios-medicos` integra filtros combinables por nombre (insensible a mayúsculas) y rangos de fechas (desde/hasta) con soporte desde la interfaz de usuario de Swagger.
+- **Filtro Global de Excepciones:** Se ha desarrollado un `PrismaExceptionFilter` para interceptar errores específicos del motor de base de datos (como violaciones de unicidad) y transformarlos en respuestas HTTP estandarizadas (409 Conflict).
 
-
-# Funcionalidades Destacadas
-
-* 
-**Búsqueda Avanzada**: El endpoint `GET /servicios-medicos` permite filtrar por nombre (parcial e insensible a mayúsculas) y rangos de fechas mediante selectores interactivos.
-
-
-* **Gestión de Errores Global**: Se implementó un `PrismaExceptionFilter` que captura errores de base de datos (como duplicados) y los devuelve como respuestas HTTP profesionales (409 Conflict).
