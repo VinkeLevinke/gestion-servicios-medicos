@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: gestion_medica
     ports:
-      - "5432:5432"
+      - "5433:5432" # <--- YA POR FAVOR YA 💀, EXTERNO: 5433 (DBeaver o en PgAdmin4) | INTERNO: 5432 (API)!!!!!!!!
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -21,14 +21,12 @@ services:
     ports:
       - '3000:3000'
     environment:
-      # Se utiliza el nombre del servicio 'db' para la red interna de Docker
+      # La API está DENTRO de Docker, por eso usa el puerto interno 5432 MIENTRAS, que en host COMO DBeaver o PgAdmin4 se conecta al puerto 5433, que es el que mapea al 5432 del contenedor de la base de datos.
       DATABASE_URL: postgresql://postgres:postgres@db:5432/gestion_medica?schema=public
       JWT_SECRET: chacalito
     depends_on:
       - db
-    # Se añade espera de 10s para asegurar la disponibilidad de la BD antes de las migraciones
-    # Porque por alguna razon a veces el contenedor de la app se inicia antes de que la BD esté lista
-    command: >
+    command: > #el comando que espera a que la base de datos esté lista antes de ejecutar las migraciones, semillas y arrancar la aplicación.
       sh -c "sleep 10 && 
              npx prisma generate && 
              npx prisma db push && 
