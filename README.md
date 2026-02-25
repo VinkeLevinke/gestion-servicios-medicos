@@ -67,7 +67,7 @@ Una vez finalizado el proceso de carga, puede acceder a:
 
 ### Versiones de Software
 
-**Prisma ORM (v5.15.0)** Durante la fase de desarrollo, la versión 7 presentó comportamientos inesperados al mapear las variables de entorno en contenedores aislados. Ante estos retos de compatibilidad y con el objetivo de entregar una infraestructura robusta y funcional "out-of-the-box", decidí implementar la versión 5.15. Esta elección técnica asegura que la comunicación entre la API y PostgreSQL en Docker sea inmediata y libre de errores.
+**Prisma ORM (v5.15.0)** Durante la fase de desarrollo, la versión 7 presentó comportamientos inesperados al mapear las variables de entorno en contenedores aislados. Ante estos retos de compatibilidad y con el objetivo de entregar una infraestructura robusta y funcional, decidí implementar la versión 5.15. Esta elección técnica asegura que la comunicación entre la API y PostgreSQL en Docker sea inmediata y libre de errores.
 
 ### Dependencias Principales
 
@@ -98,7 +98,7 @@ El proyecto implementa **Clean Architecture** para garantizar la separación de 
 
 ## Modelo de Datos (ERD)
 
-Diagrama basado en la definición de schema.prisma. Se define una relación de Uno a Muchos (1:N): una categoría agrupa múltiples servicios médicos, mientras que cada servicio está vinculado de forma obligatoria a una sola categoría.
+Diagrama basado en la definición de schema.prisma. Define una relación de Uno a Muchos (1:N): una categoría agrupa múltiples servicios médicos, mientras que cada servicio está vinculado de forma obligatoria a una sola categoría.
 
 ```mermaid
 erDiagram
