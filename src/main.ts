@@ -17,11 +17,17 @@ async function bootstrap() {
    beneficiarán de esta validación automática.*/
  
     app.useGlobalPipes(
+
     new ValidationPipe({ 
+
       whitelist: true, 
+
       transform: true,
+
       forbidNonWhitelisted: true,
+
     })
+    
   );
 
   //Filtro global para manejar excepciones de Prisma y convertirlas en respuestas HTTP adecuadas
@@ -36,17 +42,22 @@ async function bootstrap() {
       'Incluye RBAC (ADMIN/CLIENT), Borrado Lógico y Búsqueda Avanzada.'
     )
     .setVersion('1.0')
+
     .addBearerAuth()
+    
     .build();
     
   const document = SwaggerModule.createDocument(app, config);
+
   SwaggerModule.setup('docs', app, document);
 
   const port = process.env.PORT || 3000;
+
   await app.listen(port);
   
   
   logger.log(`El Servidor esta corriendo en http://localhost:${port}`);
+
   logger.log(`Para la Documentación Interactiva: http://localhost:${port}/docs`);
 } 
 bootstrap();

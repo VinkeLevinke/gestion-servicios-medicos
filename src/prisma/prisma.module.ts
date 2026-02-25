@@ -8,8 +8,14 @@ Al marcarlo como @Global(), se asegura que el PrismaService esté disponible en 
   de Prisma desde cualquier servicio o controlador que lo necesite, promoviendo una arquitectura más limpia y modular. */
   
 @Global()
+
 @Module({
+  
   providers: [PrismaService],
+  
   exports: [PrismaService],
+  
 })
+
 export class PrismaModule { }
+

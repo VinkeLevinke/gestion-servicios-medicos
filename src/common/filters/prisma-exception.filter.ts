@@ -9,23 +9,33 @@ import { Response } from 'express';
 
   @Catch(Prisma.PrismaClientKnownRequestError)
 export class PrismaExceptionFilter implements ExceptionFilter {
+
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
+
     const response = ctx.getResponse<Response>();
+
     const code = exception.code;
+
 
     switch (code) {
       case 'P2002': { // Error de Restricción Única (Duplicados)
+        
         const status = HttpStatus.CONFLICT; // 409 Conflict
+        
         const target = (exception.meta?.target as string[]) || ['campo']; // Esto extrae el campo que causó el error de duplicado, si está disponible en los metadatos de la excepción. Si no se proporciona, se usará 'campo' como valor predeterminado.
+        
         
         response.status(status).json({
           statusCode: status,
+          
           message: `Conflicto de datos: Ya existe un registro con ese ${target.join(', ')}.`,
           error: 'Conflict',
+          
         });
         break;
       }
+
       default:
         response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ // Para cualquier otro error de Prisma que no sea el P2002, se devuelve un error genérico de servidor interno.
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,// Esto establece el código de estado HTTP a 500 Internal Server Error, indicando que ocurrió un error inesperado en el servidor.

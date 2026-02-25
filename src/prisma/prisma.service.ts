@@ -6,12 +6,18 @@ import { PrismaClient } from '@prisma/client';
  @prisma/client, lo que le permite interactuar con la base de datos utilizando Prisma. */
 
 @Injectable()
+
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
+    
     await this.$connect();
+    
   }
 
   async onModuleDestroy() {
+    
     await this.$disconnect();
+    
   }
+  
 }
