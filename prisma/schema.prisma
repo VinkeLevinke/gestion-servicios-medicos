@@ -1,0 +1,64 @@
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/// ==========================// Modelos //================================= ///
+
+/// Modelo de Usuario: ///
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @map("email")
+  nombre    String?  @map("nombre")    // Añadido
+  apellido  String?  @map("apellido")  // Añadido
+  password  String   @map("password")
+  rol       Rol      @default(CLIENT) @map("rol")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("usuarios")
+}
+
+/// Modelo de Categoria: ///
+model Categoria {
+  id        Int              @id @default(autoincrement())
+  nombre    String           @unique @map("nombre")
+  servicios ServicioMedico[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("categorias")
+}
+
+/// Modelo de ServicioMedico: ///
+model ServicioMedico {
+  id                  Int       @id @default(autoincrement())
+  nombre              String    @map("nombre")
+  descripcion         String?   @map("descripcion")
+  costo               Float     @map("costo")
+  duracionMinutos     Int       @map("duracion_minutos")
+  fechaDisponibilidad DateTime  @map("fecha_disponibilidad")
+  isActive            Boolean   @default(true) @map("is_active")
+
+  categoriaId Int       @map("categoria_id")
+  categoria   Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("servicios_medicos")
+}
+
+
+/// ================================================================= ///
+/// enum Rol: ///
+enum Rol {
+  ADMIN
+  CLIENT
+}

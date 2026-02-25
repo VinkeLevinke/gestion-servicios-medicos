@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: medical-api-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gestion_medica
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: medical-api-app
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      # Usamos 'db' como host para comunicación interna entre contenedores
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/gestion_medica?schema=public
+      JWT_SECRET: chacalito
+    depends_on:
+      - db
+    # IMPORTANTE: Esperar a que la DB esté lista antes de ejecutar migraciones y seed
+    command: >
+      sh -c "npx prisma generate && 
+             npx prisma db push && 
+             npm run seed && 
+             npm run start:dev"
+
+volumes:
+  postgres_data:
